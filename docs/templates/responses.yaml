@@ -1,0 +1,115 @@
+responseIndex:
+  $nameComponent:
+    description: OK
+    content:
+      application/vnd.api+json:
+        schema:
+          type: object
+          properties:
+            meta:
+              $ref: "#/components/schemas/meta.data"
+            jsonapi:
+              $ref: '#/components/schemas/jsonapi.data'
+            links:
+              type: object
+              properties:
+                first:
+                  type: string
+                  example: "http://127.0.0.1:8000/api/v1/address/{$type}/1"
+                last:
+                  type: string
+                  example: "http://127.0.0.1:8000/api/v1/address/{$type}/1"
+            data:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: $type
+                  id:
+                    type: string
+                    example: "1"
+                  attributes: $attributes
+                  relationships: $relationships
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: "http://127.0.0.1:8000/api/v1/{$type}/1"
+responseShow:
+  $nameComponent:
+    description: OK
+    content:
+      application/vnd.api+json:
+        schema:
+          type: object
+          properties:
+            jsonapi:
+              $ref: '#/components/schemas/jsonapi.data'
+            links:
+              type: object
+              properties:
+                self:
+                  type: string
+                  example: "http://127.0.0.1:8000/api/v1/address/{$type}/1"
+            data:
+              type: object
+              properties:
+                type:
+                  type: string
+                  example: $type
+                id:
+                  type: string
+                  example: "1"
+                attributes: $attributes
+                relationships: $relationships
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      example: "http://127.0.0.1:8000/api/v1/{$type}/1"
+
+responseRelationship:
+  $nameComponent:
+    description: OK
+    content:
+      application/vnd.api+json:
+        schema:
+          type: object
+          properties:
+            meta:
+              $ref: "#/components/schemas/meta.data"
+            jsonapi:
+              $ref: '#/components/schemas/jsonapi.data'
+            links:
+              type: object
+              properties:
+                first:
+                  type: string
+                  example: "http://127.0.0.1:8000/api/v1/address/{$type}/1"
+                last:
+                  type: string
+                  example: "http://127.0.0.1:8000/api/v1/address/{$type}/1"
+            data:
+              oneOf:
+                - type: object
+                  properties:
+                    type:
+                      type: string
+                      example: $type
+                    id:
+                      type: string
+                      example: "1"
+                - type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        example: $type
+                      id:
+                        type: string
+                        example: "1"

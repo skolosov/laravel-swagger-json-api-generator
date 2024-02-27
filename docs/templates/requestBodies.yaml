@@ -1,0 +1,62 @@
+store:
+  $nameComponent:
+    content:
+      application/vnd.api+json:
+        schema:
+          type: object
+          properties:
+            data:
+              type: object
+              properties:
+                type:
+                  type: string
+                  example: $type
+                attributes: $requestAttributes
+                relationships: $requestRelationships
+
+update:
+  $nameComponent:
+    content:
+      application/vnd.api+json:
+        schema:
+          type: object
+          properties:
+            data:
+              type: object
+              properties:
+                id:
+                  type: string
+                  example: '1'
+                type:
+                  type: string
+                  example: $type
+                attributes: $requestAttributes
+                relationships: $requestRelationships
+
+relationship:
+  $nameComponent:
+    content:
+      application/vnd.api+json:
+        schema:
+          type: object
+          properties:
+            data:
+              oneOf:
+                - type: object
+                  properties:
+                    type:
+                      type: string
+                      example: $type
+                    id:
+                      type: string
+                      example: "1"
+                - type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        example: $type
+                      id:
+                        type: string
+                        example: "1"

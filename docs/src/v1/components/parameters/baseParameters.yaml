@@ -1,0 +1,21 @@
+baseParameterId:
+  in: path
+  name: id
+  schema:
+    type: integer
+  required: true
+
+paginationPageNumber:
+  in: query
+  name: page[number]
+  schema:
+    type: string
+  description: Номер страницы
+
+paginationPageSize:
+  in: query
+  name: page[size]
+  schema:
+    type: string
+  description: Количество элементов
+

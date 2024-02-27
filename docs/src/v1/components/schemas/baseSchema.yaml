@@ -1,0 +1,85 @@
+#BaseId:
+#  type: string
+#  example: '5'
+#  description: Идентификатор
+#
+#BaseType:
+#  type: string
+#  example: 'cities'
+#  description: Тип ресурса
+#
+#BaseLink:
+#  type: object
+#  properties:
+#    self:
+#      type: string
+#      example: "http://127.0.0.1:8000/api/v1/address/cities/2"
+#
+#RelationData:
+#  type: object
+#  properties:
+#    type:
+#      type: string
+#    id:
+#      type: string
+#      example: '2'
+#
+#RelationshipsDataLinks:
+#  type: object
+#  properties:
+#    related:
+#      type: string
+#      example: 'http://127.0.0.1:8000/api/v1/address/cities/2/city-type'
+#    self:
+#      type: string
+#      example: 'http://127.0.0.1:8000/api/v1/address/cities/2/relationships/city-type'
+#
+#DataRelationMany:
+#  type: object
+#  properties:
+#    links:
+#      $ref: '#/components/schemas/RelationshipsDataLinks'
+#    data:
+#      type: array
+#      items:
+#        $ref: '#/components/schemas/RelationData'
+#
+#DataRelationOne:
+#  type: object
+#  properties:
+#    links:
+#      $ref: '#/components/schemas/RelationshipsDataLinks'
+#    data:
+#      $ref: '#/components/schemas/RelationData'
+#
+#
+#RelationshipsData:
+#  oneOf:
+#    - $ref: '#/components/schemas/DataRelationOne'
+#    - $ref: '#/components/schemas/DataRelationMany'
+
+meta.data:
+  type: object
+  properties:
+    page:
+      type: object
+      properties:
+        currentPage:
+          type: number
+        from:
+          type: number
+        lastPage:
+          type: number
+        perPage:
+          type: number
+        to:
+          type: number
+        total:
+          type: number
+
+jsonapi.data:
+  type: object
+  properties:
+    version:
+      type: string
+      example: "1.0"

@@ -1,0 +1,32 @@
+{
+    "name": "skolosov/laravel-swagger-json-api-generator",
+    "description": "The package implements automatic generation of the Open Api specification for the laravel-json-api package",
+    "type": "project",
+    "require": {
+        "php": "^8.1",
+        "laravel-json-api/laravel": "^3.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "*"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Skolosov\\LaravelSwaggerJsonApiGenerator\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "SKolosov",
+            "email": "skolosov.work@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Skolosov\\LaravelSwaggerJsonApiGenerator\\LaravelSwaggerJsonApiGeneratorServiceProvider"
+            ]
+        }
+    }
+}

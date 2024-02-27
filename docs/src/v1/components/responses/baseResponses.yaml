@@ -1,0 +1,188 @@
+InternalServerError:
+  description: Internal Server Error
+  headers:
+    Content-Type:
+      schema:
+        type: string
+      description: "application/json"
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          errors:
+            type: array
+            items:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: 500
+                detail:
+                  type: string
+                  example: "The backend responded with an error."
+Unauthorized:
+  description: Unauthorized
+  headers:
+    Content-Type:
+      schema:
+        type: string
+      description: "application/json"
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          errors:
+            type: array
+            items:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: 401
+                detail:
+                  type: string
+                  example: "Unauthorized"
+NotAcceptable:
+  description: Not Acceptable
+  headers:
+    Content-Type:
+      schema:
+        type: string
+      description: "application/json"
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          errors:
+            type: array
+            items:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: 406
+                detail:
+                  type: string
+                  example: "The request entity has a media type which the server or resource does not support."
+NotFound:
+  description: Not Found
+  headers:
+    Content-Type:
+      schema:
+        type: string
+      description: "application/json"
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          errors:
+            type: array
+            items:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: 404
+                detail:
+                  type: string
+                  example: "The resource with ID 1 was not found."
+
+UnprocessableContent:
+  description: Unprocessable Content
+  headers:
+    Content-Type:
+      schema:
+        type: string
+      description: "application/json"
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          errors:
+            type: array
+            items:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: 422
+                detail:
+                  type: string
+                  example: "The has already been taken."
+                source:
+                  type: object
+                  properties:
+                    pointer:
+                      type: string
+                      example: "/data/attributes/slug"
+
+ImageUpdateException:
+  description: Unprocessable Content
+  headers:
+    Content-Type:
+      schema:
+        type: string
+      description: "application/json"
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          errors:
+            type: array
+            items:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: 422
+                detail:
+                  type: string
+                  example: "The has already been taken."
+                source:
+                  type: object
+                  properties:
+                    pointer:
+                      type: string
+                      example: "/data/attributes/path"
+
+UnsupportedMediaType:
+  description: Unsupported Media Type
+  headers:
+    Content-Type:
+      schema:
+        type: string
+      description: "application/json"
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          errors:
+            type: array
+            items:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: 415
+                detail:
+                  type: string
+                  example: "The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request."
+noContent:
+  description: No Content
+  content:
+    application/vnd.api+json:
+      schema:
+
+BoolContent:
+  description: Ok
+  content:
+    application/json:
+      schema:
+        type: boolean

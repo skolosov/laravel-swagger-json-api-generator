@@ -1,0 +1,12 @@
+urlTemplate:
+  $uri: $requests
+
+requestsTemplate:
+  $method:
+    tags:
+      - $tag
+    security: $security
+    summary: $summary
+    parameters: $parameters
+    requestBody: $requestBody
+    responses: $responses

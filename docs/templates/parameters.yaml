@@ -1,0 +1,23 @@
+query:
+  $nameComponent:
+    in: query
+    name: filter[{$key}]
+    schema:
+      type: $type
+enum:
+  $nameComponent:
+    in: query
+    name: $key
+    explode: false
+    schema:
+      type: array
+      items:
+        type: string
+        enum: $enum
+
+fields:
+  $nameComponent:
+    in: query
+    name: fields[{$type}]
+    schema:
+      type: string
