@@ -12,7 +12,6 @@ return [
      * Серверы спецификации
      *
      * - { url: 'http://localhost:8000/', description: local }
-     * - { url: 'https://develop-4184.c4.syndev.ru/', description: develop }
      */
     'servers' => [
         ['url' => 'http://localhost:8000/', 'description' => 'local'],
@@ -22,6 +21,7 @@ return [
      * Здась описываются ресурсы которые
      * необходимо отрисовать в документации
      *
+     * {тип ресурса} => {схема ресурса / тэг который будет отображатся для кастомных методов}
      * 'auth' => 'auth' // регистрация тэга ресурса если у него нет схемы
      * 'users' => UserSchema::class // регистрация тэга ресурса через схему LaravelJsonApi пакета
      */

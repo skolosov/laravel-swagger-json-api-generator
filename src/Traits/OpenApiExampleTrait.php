@@ -6,9 +6,9 @@ trait OpenApiExampleTrait
 {
     private ?string $example = null;
 
-    public function example(string $example): self
+    public function example(string|bool|int|null $example): self
     {
-        $this->example = $example;
+        $this->example = $example ?? '';
 
         return $this;
     }
