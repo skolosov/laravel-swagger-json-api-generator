@@ -1,11 +1,11 @@
 <?php
 
-namespace Skolosov\LaravelSwaggerJsonApiGenerator\Fields;
+namespace Syn\LaravelSwaggerJsonApiGenerator\Fields;
 
-use Skolosov\LaravelSwaggerJsonApiGenerator\Contracts\FieldContract;
-use Skolosov\LaravelSwaggerJsonApiGenerator\Traits\OpenApiDescriptionTrait;
-use Skolosov\LaravelSwaggerJsonApiGenerator\Traits\OpenApiExampleTrait;
-use Skolosov\LaravelSwaggerJsonApiGenerator\Traits\OpenApiTypeTrait;
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\FieldContract;
+use Syn\LaravelSwaggerJsonApiGenerator\Traits\OpenApiDescriptionTrait;
+use Syn\LaravelSwaggerJsonApiGenerator\Traits\OpenApiExampleTrait;
+use Syn\LaravelSwaggerJsonApiGenerator\Traits\OpenApiTypeTrait;
 use LaravelJsonApi\Eloquent\Fields\Boolean as BooleanField;
 
 class Boolean extends BooleanField implements FieldContract

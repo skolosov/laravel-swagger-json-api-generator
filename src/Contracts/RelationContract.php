@@ -1,6 +1,6 @@
 <?php
 
-namespace Skolosov\LaravelSwaggerJsonApiGenerator\Contracts;
+namespace Syn\LaravelSwaggerJsonApiGenerator\Contracts;
 
 interface RelationContract
 {

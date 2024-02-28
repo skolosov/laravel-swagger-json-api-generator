@@ -1,12 +1,12 @@
 <?php
 
-namespace Skolosov\LaravelSwaggerJsonApiGenerator\Fields\Relation;
+namespace Syn\LaravelSwaggerJsonApiGenerator\Fields\Relation;
 
 
-use Skolosov\LaravelSwaggerJsonApiGenerator\Contracts\RelationContract;
-use Skolosov\LaravelSwaggerJsonApiGenerator\Contracts\RelationToMany;
-use Skolosov\LaravelSwaggerJsonApiGenerator\Traits\OpenApiRelationTrait;
-use Skolosov\LaravelSwaggerJsonApiGenerator\Traits\OpenApiTypeTrait;
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\RelationContract;
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\RelationToMany;
+use Syn\LaravelSwaggerJsonApiGenerator\Traits\OpenApiRelationTrait;
+use Syn\LaravelSwaggerJsonApiGenerator\Traits\OpenApiTypeTrait;
 use LaravelJsonApi\Eloquent\Fields\Relations\BelongsToMany as BelongsToManyRelation;
 
 class BelongsToMany extends BelongsToManyRelation implements RelationContract, RelationToMany

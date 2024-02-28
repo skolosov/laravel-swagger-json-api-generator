@@ -1,11 +1,11 @@
 <?php
 
-namespace Skolosov\LaravelSwaggerJsonApiGenerator\Filters;
+namespace Syn\LaravelSwaggerJsonApiGenerator\Filters;
 
-use Skolosov\LaravelSwaggerJsonApiGenerator\Contracts\FilterContract;
-use Skolosov\LaravelSwaggerJsonApiGenerator\Traits\OpenApiDescriptionTrait;
-use Skolosov\LaravelSwaggerJsonApiGenerator\Traits\OpenApiExampleTrait;
-use Skolosov\LaravelSwaggerJsonApiGenerator\Traits\OpenApiTypeTrait;
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\FilterContract;
+use Syn\LaravelSwaggerJsonApiGenerator\Traits\OpenApiDescriptionTrait;
+use Syn\LaravelSwaggerJsonApiGenerator\Traits\OpenApiExampleTrait;
+use Syn\LaravelSwaggerJsonApiGenerator\Traits\OpenApiTypeTrait;
 use LaravelJsonApi\Eloquent\Filters\WhereIdIn as WhereIdInFilter;
 
 class WhereIdIn extends WhereIdInFilter implements FilterContract

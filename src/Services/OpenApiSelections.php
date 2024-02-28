@@ -1,16 +1,31 @@
 <?php
 
-namespace Skolosov\LaravelSwaggerJsonApiGenerator\Services;
+namespace Syn\LaravelSwaggerJsonApiGenerator\Services;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Syn\LaravelSwaggerJsonApiGenerator\Enums\OpenApiComponentsEnum;
+use Syn\LaravelSwaggerJsonApiGenerator\Models\SwaggerComponent;
 use Symfony\Component\Yaml\Yaml;
 
 class OpenApiSelections
 {
     public function selectionRequestBodies(array $dataPath): array
     {
-        $requestBodiesComponents = $this->getComponents('requestBodies');
+        /** @var Collection $components */
+        $components = SwaggerComponent::query()
+            ->where(
+                SwaggerComponent::FIELD_TYPE,
+                OpenApiComponentsEnum::REQUEST_BODIES->value
+            )->get();
+
+        /** @var array $componentsNames */
+        $componentsNames = $components
+            ->pluck(SwaggerComponent::FIELD_NAME)
+            ->toArray();
+
+
         foreach ($dataPath as &$requests) {
             foreach ($requests as &$request) {
                 $modelType = $request['resource'];
@@ -23,7 +38,7 @@ class OpenApiSelections
                     default => null,
                 };
 
-                if (key_exists($requestBodyName, $requestBodiesComponents)) {
+                if (key_exists($requestBodyName, $componentsNames)) {
                     $request['requestBody'] = ['$ref' => "#/components/requestBodies/$requestBodyName"];
                 } else {
                     $request['requestBody'] = null;
@@ -36,7 +51,18 @@ class OpenApiSelections
 
     public function selectionResponses(array $dataPath): array
     {
-        $responsesComponents = $this->getComponents('responses');
+        /** @var Collection $components */
+        $components = SwaggerComponent::query()
+            ->where(
+                SwaggerComponent::FIELD_TYPE,
+                OpenApiComponentsEnum::RESPONSES->value
+            )->get();
+
+        /** @var array $componentsNames */
+        $componentsNames = $components
+            ->pluck(SwaggerComponent::FIELD_NAME)
+            ->toArray();
+
         foreach ($dataPath as &$requests) {
             foreach ($requests as &$request) {
                 $modelType = $request['resource'];
@@ -49,7 +75,7 @@ class OpenApiSelections
                     'detachRelationship' => "$modelType.response.relationship",
                     default => 'noContent'
                 };
-                if (key_exists($responsesName, $responsesComponents)) {
+                if (key_exists($responsesName, $componentsNames)) {
                     $request['responses'] = [
                         200 => ['$ref' => "#/components/responses/$responsesName"]
                     ];
@@ -75,7 +101,18 @@ class OpenApiSelections
 
     public function selectionParameters(array $dataPath): array
     {
-        $parametersComponents = $this->getComponents('parameters');
+        /** @var Collection $components */
+        $components = SwaggerComponent::query()
+            ->where(
+                SwaggerComponent::FIELD_TYPE,
+                OpenApiComponentsEnum::PARAMETERS->value
+            )->get();
+
+        /** @var array $componentsNames */
+        $componentsNames = $components
+            ->pluck(SwaggerComponent::FIELD_NAME)
+            ->toArray();
+
         foreach ($dataPath as &$requests) {
             foreach ($requests as &$request) {
                 $modelType = $request['resource'];
@@ -84,7 +121,7 @@ class OpenApiSelections
                         "paginationPageNumber",
                         "paginationPageSize",
                         ...array_reduce(
-                            array_keys($parametersComponents),
+                            $componentsNames,
                             function ($result, $filter) use ($modelType) {
                                 if (Str::substrCount($filter, $modelType)) {
                                     $result[] = $filter;
@@ -95,7 +132,7 @@ class OpenApiSelections
                     'showRelated' => [
                         "baseParameterId",
                         ...$request['isMany'] ? array_reduce(
-                            array_keys($parametersComponents),
+                            $componentsNames,
                             function ($result, $filter) use ($modelType) {
                                 if (Str::substrCount($filter, $modelType) &&
                                     !Str::contains($filter, ['include'])
@@ -124,8 +161,8 @@ class OpenApiSelections
                     ],
                     default => []
                 };
-                $request['parameters'] = array_reduce($parametersNames, function ($result, $param) use ($parametersComponents) {
-                    if (key_exists($param, $parametersComponents)) {
+                $request['parameters'] = array_reduce($parametersNames, function ($result, $param) use ($componentsNames){
+                    if (key_exists($param, $componentsNames)) {
                         $result[] = ['$ref' => "#/components/parameters/$param"];
                     }
                     return $result;
@@ -133,23 +170,5 @@ class OpenApiSelections
             }
         }
         return $dataPath;
-    }
-
-    public function getComponents(string $type): array
-    {
-        $componentsFiles = Storage::disk('docs')->allFiles("src/v1/components/$type");
-        $data = [];
-        foreach ($componentsFiles as $componentPath) {
-            if (Str::contains($componentPath, '.gitignore')) {
-                continue;
-            }
-            $componentFileArray = Yaml::parseFile(base_path("docs/$componentPath"));
-            $data = array_merge(
-                $data,
-                $componentFileArray ?? []
-            );
-        }
-
-        return $data;
     }
 }

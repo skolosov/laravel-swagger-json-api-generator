@@ -1,12 +1,13 @@
 <?php
 
-namespace Skolosov\LaravelSwaggerJsonApiGenerator\Services;
+namespace Syn\LaravelSwaggerJsonApiGenerator\Services;
 
 
-use Skolosov\LaravelSwaggerJsonApiGenerator\Contracts\FieldContract;
-use Skolosov\LaravelSwaggerJsonApiGenerator\Contracts\FilterContract;
-use Skolosov\LaravelSwaggerJsonApiGenerator\Contracts\RelationContract;
-use Skolosov\LaravelSwaggerJsonApiGenerator\Contracts\RelationToMany;
+use Illuminate\Database\Eloquent\Collection;
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\FieldContract;
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\FilterContract;
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\RelationContract;
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\RelationToMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -14,6 +15,9 @@ use Illuminate\Support\Str;
 use LaravelJsonApi\Eloquent\Fields\ID;
 use LaravelJsonApi\Eloquent\Fields\Relations\Relation;
 use LaravelJsonApi\Eloquent\Schema;
+use Syn\LaravelSwaggerJsonApiGenerator\DTO\Resource;
+use Syn\LaravelSwaggerJsonApiGenerator\Enums\OpenApiComponentsEnum;
+use Syn\LaravelSwaggerJsonApiGenerator\Models\SwaggerComponent;
 use Symfony\Component\Yaml\Yaml;
 
 class OpenApiGenerators
@@ -26,10 +30,9 @@ class OpenApiGenerators
     }
 
 
-    public function generateRequests(Schema $schema, $resourceEnum): void
+    public function generateRequests(Schema $schema): void
     {
-        $type = 'requestBodies';
-        $template = $this->getYamlTemplate('requestBodies');
+        $template = $this->getYamlTemplate(OpenApiComponentsEnum::REQUEST_BODIES->value);
         $storeTemplate = $template['store'];
         $updateTemplate = $template['update'];
         $relationshipTemplate = $template['relationship'];
@@ -57,15 +60,13 @@ class OpenApiGenerators
             ...$relationshipTmp,
         ];
 
-        $this->generateYaml($templates, $type, $resourceEnum);
+        $this->generateSwaggerComponents($templates, OpenApiComponentsEnum::REQUEST_BODIES->value);
     }
 
-
-    public function generateParameters(Schema $schema, $resourceEnum): void
+    public function generateParameters(Schema $schema): void
     {
-        $type = 'parameters';
         $resourceType = $schema::type();
-        $template = $this->getYamlTemplate($type);
+        $template = $this->getYamlTemplate(OpenApiComponentsEnum::PARAMETERS->value);
         $fields = $schema->fields();
 
         $includeParams = array_reduce((array)$fields, function ($result, $field) {
@@ -124,13 +125,13 @@ class OpenApiGenerators
             ...$tmpSort,
         ];
 
-        $this->generateYaml($templates, $type, $resourceEnum);
+        $this->generateSwaggerComponents($templates, OpenApiComponentsEnum::PARAMETERS->value);
     }
 
 
-    public function generateSchemas(Schema $schema, $resourceEnum): void
+    public function generateSchemas(Schema $schema): void
     {
-        $template = $this->getYamlTemplate('schemas');
+        $template = $this->getYamlTemplate(OpenApiComponentsEnum::SCHEMAS->value);
         $fields = $schema->fields();
 
         $typeResource = $schema::model()::MODEL_TYPE;
@@ -190,13 +191,14 @@ class OpenApiGenerators
             ...$tmpRequestAttributes,
             ...$tmpRequestRelationships,
         ];
-        $this->generateYaml($templates, 'schemas', $resourceEnum);
+
+        $this->generateSwaggerComponents($templates, OpenApiComponentsEnum::SCHEMAS->value);
     }
 
 
-    public function generateResponses(Schema $schema, $resourceEnum): void
+    public function generateResponses(Schema $schema): void
     {
-        $template = $this->getYamlTemplate('responses');
+        $template = $this->getYamlTemplate(OpenApiComponentsEnum::RESPONSES->value);
         $responseTemplate = $template['responseShow'];
         $responseIndexTemplate = $template['responseIndex'];
         $responseRelationshipTemplate = $template['responseRelationship'];
@@ -222,15 +224,17 @@ class OpenApiGenerators
             ...$responseRelationshipTmp,
         ];
 
-        $this->generateYaml($templates, 'responses', $resourceEnum);
+        $this->generateSwaggerComponents($templates, OpenApiComponentsEnum::RESPONSES->value);
     }
 
 
-    public function generatePath(Schema $schema, $resourceEnum): void
+    public function generatePath(Schema $schema): void
     {
-        $routes = $this->getRoutes($schema::model());
+        $schemaModel = $schema::model();
+        $schemaModelType = $schemaModel::MODEL_TYPE;
+        $routes = $this->getRoutes($schemaModel);
 
-        $template = $this->getYamlTemplate('paths');
+        $template = $this->getYamlTemplate(OpenApiComponentsEnum::PATHS->value);
         $urlTemplate = $template['urlTemplate'];
         $requestsTemplate = $template['requestsTemplate'];
 
@@ -257,7 +261,7 @@ class OpenApiGenerators
                     'isMany' => $isMany,
                     'resource' => $modelType,
                     'method' => $method,
-                    'tag' => $resourceEnum->name,
+                    'tag' => $schemaModelType,
                     'action' => $action,
                     'summary' => match ($action) {
                         'index' => "Получение всех ресурсов $modelType",
@@ -265,11 +269,11 @@ class OpenApiGenerators
                         'update' => "Изменение ресурса $modelType",
                         'destroy' => "Удаление ресурса $modelType",
                         'show' => "Получение ресурса $modelType",
-                        'showRelated' => "Получение списка ресурсов $modelType связанных с ресурсом $resourceEnum->name",
-                        'showRelationship' => "Получение списка идентификаторов ресурсов $modelType связанных с ресурсом $resourceEnum->name",
-                        'updateRelationship' => "Изменение привязки ресурсов $modelType связанных с ресурсом $resourceEnum->name",
-                        'attachRelationship' => "Привязка ресурсов $modelType связанных с ресурсом $resourceEnum->name",
-                        'detachRelationship' => "Отвязать ресурсы $modelType связанных с ресурсом $resourceEnum->name",
+                        'showRelated' => "Получение списка ресурсов $modelType связанных с ресурсом $schemaModelType",
+                        'showRelationship' => "Получение списка идентификаторов ресурсов $modelType связанных с ресурсом $schemaModelType",
+                        'updateRelationship' => "Изменение привязки ресурсов $modelType связанных с ресурсом $schemaModelType",
+                        'attachRelationship' => "Привязка ресурсов $modelType связанных с ресурсом $schemaModelType",
+                        'detachRelationship' => "Отвязать ресурсы $modelType связанных с ресурсом $schemaModelType",
                         default => $action,
                     }
                 ];
@@ -292,18 +296,35 @@ class OpenApiGenerators
             $templates = array_merge($templates, $this->walkToArray($urlTemplate, ['uri' => $fixUri, 'requests' => $requestsTmp]));
         }
 
-        $this->generateYaml($templates, 'paths', $resourceEnum);
+        $this->generateSwaggerComponents($templates, OpenApiComponentsEnum::PATHS->value);
     }
 
-    public function generateMainOpenApiFile($enum): void
+    private function generateSwaggerComponents(array $templates, string $type, bool $isBase = false): void
     {
-        $template = $this->getYamlTemplate('main');
+        $data = [];
+        foreach ($templates as $name => $component) {
+            $data[] = [
+                'type' => $type,
+                'name' => $name,
+                'component' => json_encode($component),
+                'is_base' => $isBase,
+            ];
+        }
+
+        SwaggerComponent::query()->insert($data);
+    }
+
+    public function generateMainOpenApiFile(array $resources = []): void
+    {
+        $template = $this->getYamlTemplate(OpenApiComponentsEnum::MAIN->value);
+
+        $resources = Arr::map($resources, fn ($value, $name) => new Resource(name: $name, value: $value));
 
         $tagsTemplates = array_reduce(
-            $enum::cases(), function ($result, $resourceEnum) {
+            $resources, function ($result, Resource $resource) {
             $result[] = [
-                'name' => $resourceEnum->name,
-                'description' => $resourceEnum->description()
+                'name' => $resource->name,
+                'description' => $resource->description()
             ];
             return $result;
         }, []);
@@ -312,33 +333,61 @@ class OpenApiGenerators
         $componentsRefs = $this->getFullComponents();
 
         $params = [
-            ...$componentsRefs,
+            'title' => config('swagger-jsonapi-generator.title', 'Backend'),
+            'version' => config('swagger-jsonapi-generator.version', '1.0.0'),
+            'description' => config('swagger-jsonapi-generator.version', ''),
+            'servers' => config('swagger-jsonapi-generator.servers', ['url' => 'http://localhost:8000/', 'description' => 'local']),
             'tags' => $tagsTemplates,
+            ...$componentsRefs,
         ];
 
 
         $mainTemplate = $this->walkToArray($template, $params);
         $openApiFile = Yaml::dump($mainTemplate, 2, 2);
-        Storage::disk('docs')->put("v1/openapi.yaml", $openApiFile);
+        $outputPath = "v1/openapi.yaml";
+        Storage::disk('docs')->put($outputPath, $openApiFile);
+    }
+
+    public function loadBaseComponents(): void
+    {
+        $types = OpenApiComponentsEnum::cases();
+        foreach ($types as $type) {
+            if ($type === OpenApiComponentsEnum::MAIN) {
+                continue;
+            }
+            $file = templates_path("baseComponents/$type->value.yaml");
+            $templates = file_exists($file)
+                ? Yaml::parseFile($file) ?? []
+                : [];
+            $templates = [
+                ...$templates,
+                ...$this->getComponents($type->value),
+            ];
+            $this->generateSwaggerComponents($templates, $type->value, true);
+        }
+    }
+
+    private function getComponents(string $type): array
+    {
+        $componentsFiles = Storage::disk('docs')->allFiles("src/v1/components/$type");
+        $data = [];
+        foreach ($componentsFiles as $componentPath) {
+            if (Str::contains($componentPath, ['.gitignore', '.gitkeep'])) {
+                continue;
+            }
+            $componentFileArray = Yaml::parseFile(docs_path($componentPath));
+            $data = [
+                ...$data,
+                ...$componentFileArray ?? [],
+            ];
+        }
+
+        return $data;
     }
 
     private function getYamlTemplate(string $type): array
     {
-        return Yaml::parseFile(base_path("docs/templates/$type.yaml"));
-    }
-
-
-    private function generateYaml(array $openApiFile, string $componentType, $openApiResourceEnum): void
-    {
-        $openApiFile = Yaml::dump($openApiFile, 2, 2);
-
-        $namespace = $openApiResourceEnum->namespace();
-
-        Storage::disk('docs')
-            ->put(
-                "src/v1/components/$componentType/$namespace/$componentType.yaml",
-                $openApiFile
-            );
+        return Yaml::parseFile(templates_path("$type.yaml"));
     }
 
     public function getRoutes(string $modelClass): array
@@ -411,31 +460,15 @@ class OpenApiGenerators
 
     private function getFullComponents(): array
     {
-        $parametersFiles = Storage::disk('docs')->allFiles('src/v1/components/parameters');
-        $requestBodiesFiles = Storage::disk('docs')->allFiles('src/v1/components/requestBodies');
-        $responsesFiles = Storage::disk('docs')->allFiles('src/v1/components/responses');
-        $schemasFiles = Storage::disk('docs')->allFiles('src/v1/components/schemas');
-        $pathsFiles = Storage::disk('docs')->allFiles('src/v1/components/paths');
-        $files = [
-            'parameters' => $parametersFiles,
-            'requestBodies' => $requestBodiesFiles,
-            'responses' => $responsesFiles,
-            'schemas' => $schemasFiles,
-            'paths' => $pathsFiles,
-        ];
+        /** @var Collection $components */
+        $components = SwaggerComponent::query()
+            ->orderBy(SwaggerComponent::FIELD_TYPE)
+            ->get();
+
         $data = [];
-        foreach ($files as $type => $filesPaths) {
-            $data[$type] = [];
-            foreach ($filesPaths as $filePath) {
-                if (Str::contains($filePath, '.gitignore')) {
-                    continue;
-                }
-                $componentFileArray = Yaml::parseFile(base_path("docs/$filePath"));
-                $data[$type] = array_merge(
-                    $data[$type],
-                    $componentFileArray ?? []
-                );
-            }
+        foreach ($components as $component) {
+            /** @var SwaggerComponent $component */
+            $data[$component->type][$component->name] = $component->component;
         }
 
         return $data;

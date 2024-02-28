@@ -1,6 +1,6 @@
 <?php
 
-namespace Skolosov\LaravelSwaggerJsonApiGenerator\Traits;
+namespace Syn\LaravelSwaggerJsonApiGenerator\Traits;
 
 trait OpenApiExampleTrait
 {
