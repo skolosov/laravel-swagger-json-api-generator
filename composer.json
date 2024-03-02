@@ -2,7 +2,7 @@
     "name": "syn/laravel-swagger-json-api-generator",
     "version": "0.1.2",
     "description": "The package implements automatic generation of the Open Api specification for the laravel-json-api package",
-    "type": "project",
+    "type": "library",
     "require": {
         "php": "^8.1",
         "laravel-json-api/laravel": "^3.0"
