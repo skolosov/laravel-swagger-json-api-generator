@@ -335,7 +335,7 @@ class OpenApiGenerators
         $params = [
             'title' => config('swagger-jsonapi-generator.title', 'Backend'),
             'version' => config('swagger-jsonapi-generator.version', '1.0.0'),
-            'description' => config('swagger-jsonapi-generator.version', ''),
+            'description' => config('swagger-jsonapi-generator.description', ''),
             'servers' => config('swagger-jsonapi-generator.servers', ['url' => 'http://localhost:8000/', 'description' => 'local']),
             'tags' => $tagsTemplates,
             ...$componentsRefs,
