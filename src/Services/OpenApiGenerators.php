@@ -111,8 +111,8 @@ class OpenApiGenerators
                 return $result;
             }, []);
 
-        $tmpInclude = $this->walkToArray($template['enum'], $includeFilterData);
-        $tmpSort = $this->walkToArray($template['enum'], $sortFilterData);
+        $tmpInclude = count($includeParams) ? $this->walkToArray($template['enum'], $includeFilterData) : [];
+        $tmpSort = count($sortFilterData) ? $this->walkToArray($template['enum'], $sortFilterData) : [];
 
         $tmpFilters = array_reduce($filtersNames, function ($result, $filter) use ($template) {
             $tmp = $this->walkToArray($template['query'], $filter);

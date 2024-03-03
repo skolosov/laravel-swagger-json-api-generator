@@ -50,17 +50,30 @@ class OpenApiGenerate extends Command
             $server = new ($service->server)(app(AppResolver::class), 'v1');
             $schema = new ($schema)($server);
 
-            $bar->setMessage("Генерация параметров $tag");
-            $generators->generateParameters($schema);
             $bar->setMessage("Генерация схем $tag");
             $generators->generateSchemas($schema);
+            $bar->setMessage("Генерация параметров $tag");
+            $generators->generateParameters($schema);
             $bar->setMessage("Генерация ответов $tag");
             $generators->generateResponses($schema);
             $bar->setMessage("Генерация тел запросов $tag");
             $generators->generateRequests($schema);
+            $bar->advance();
+        }
+        $bar->finish();
+        $bar = $this->output->createProgressBar(count($tags) + 1);
+        $bar->setFormat("%current%/%max% [%bar%] %percent:1s%% %message%\n");
+        $bar->start();
+        $bar->setMessage("Генерация компонентов путей");
+        foreach ($tags as $tag => $schema) {
+            if (!class_exists($schema)) {
+                continue;
+            }
+            $server = new ($service->server)(app(AppResolver::class), 'v1');
+            $schema = new ($schema)($server);
+
             $bar->setMessage("Генерация путей $tag");
             $generators->generatePath($schema);
-            $bar->advance();
         }
 
         $bar->setMessage("Генерация OpenApi");

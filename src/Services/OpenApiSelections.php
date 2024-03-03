@@ -3,6 +3,7 @@
 namespace Syn\LaravelSwaggerJsonApiGenerator\Services;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Syn\LaravelSwaggerJsonApiGenerator\Enums\OpenApiComponentsEnum;
@@ -38,7 +39,7 @@ class OpenApiSelections
                     default => null,
                 };
 
-                if (key_exists($requestBodyName, $componentsNames)) {
+                if (in_array($requestBodyName, $componentsNames)) {
                     $request['requestBody'] = ['$ref' => "#/components/requestBodies/$requestBodyName"];
                 } else {
                     $request['requestBody'] = null;
@@ -75,7 +76,7 @@ class OpenApiSelections
                     'detachRelationship' => "$modelType.response.relationship",
                     default => 'noContent'
                 };
-                if (key_exists($responsesName, $componentsNames)) {
+                if (in_array($responsesName, $componentsNames)) {
                     $request['responses'] = [
                         200 => ['$ref' => "#/components/responses/$responsesName"]
                     ];
@@ -162,7 +163,7 @@ class OpenApiSelections
                     default => []
                 };
                 $request['parameters'] = array_reduce($parametersNames, function ($result, $param) use ($componentsNames){
-                    if (key_exists($param, $componentsNames)) {
+                    if (in_array($param, $componentsNames)) {
                         $result[] = ['$ref' => "#/components/parameters/$param"];
                     }
                     return $result;
