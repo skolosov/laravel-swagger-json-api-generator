@@ -280,7 +280,7 @@ class OpenApiGenerators
             }
         }
 
-        $data = Arr::sortDesc($data);
+        $data = Arr::sort($data);
 
         $data = $this->selections->selectionParameters($data);
         $data = $this->selections->selectionResponses($data);
