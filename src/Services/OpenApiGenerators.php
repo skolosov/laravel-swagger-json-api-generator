@@ -463,6 +463,7 @@ class OpenApiGenerators
         /** @var Collection $components */
         $components = SwaggerComponent::query()
             ->orderBy(SwaggerComponent::FIELD_TYPE)
+            ->orderBy(SwaggerComponent::FIELD_NAME)
             ->get();
 
         $data = [];
