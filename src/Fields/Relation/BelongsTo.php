@@ -2,13 +2,14 @@
 
 namespace Syn\LaravelSwaggerJsonApiGenerator\Fields\Relation;
 
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\Relation;
 use Syn\LaravelSwaggerJsonApiGenerator\Contracts\RelationContract;
 use Syn\LaravelSwaggerJsonApiGenerator\Contracts\RelationToOne;
 use Syn\LaravelSwaggerJsonApiGenerator\Traits\OpenApiRelationTrait;
 use Syn\LaravelSwaggerJsonApiGenerator\Traits\OpenApiTypeTrait;
 use LaravelJsonApi\Eloquent\Fields\Relations\BelongsTo as BelongsToRelation;
 
-class BelongsTo extends BelongsToRelation implements RelationContract, RelationToOne
+class BelongsTo extends BelongsToRelation implements Relation, RelationContract, RelationToOne
 {
     use OpenApiTypeTrait;
     use OpenApiRelationTrait;

@@ -2,13 +2,14 @@
 
 namespace Syn\LaravelSwaggerJsonApiGenerator\Fields;
 
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\Field;
 use Syn\LaravelSwaggerJsonApiGenerator\Contracts\FieldContract;
 use Syn\LaravelSwaggerJsonApiGenerator\Traits\OpenApiDescriptionTrait;
 use Syn\LaravelSwaggerJsonApiGenerator\Traits\OpenApiExampleTrait;
 use Syn\LaravelSwaggerJsonApiGenerator\Traits\OpenApiTypeTrait;
 use LaravelJsonApi\Eloquent\Fields\DateTime as DateTimeField;
 
-class DateTime extends DateTimeField implements FieldContract
+class DateTime extends DateTimeField implements Field, FieldContract
 {
     use OpenApiTypeTrait;
     use OpenApiDescriptionTrait;
@@ -16,6 +17,6 @@ class DateTime extends DateTimeField implements FieldContract
 
     public static function make(string $fieldName, string $column = null): self
     {
-        return new static($fieldName, $column);
+        return (new static($fieldName, $column))->typeUsing('string');
     }
 }

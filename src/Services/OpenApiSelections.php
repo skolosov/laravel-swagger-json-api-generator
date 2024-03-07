@@ -114,7 +114,7 @@ class OpenApiSelections
             ->pluck(SwaggerComponent::FIELD_NAME)
             ->toArray();
 
-        foreach ($dataPath as &$requests) {
+        foreach ($dataPath as $path => &$requests) {
             foreach ($requests as &$request) {
                 $modelType = $request['resource'];
                 $parametersNames = match ($request['action']) {
@@ -124,7 +124,7 @@ class OpenApiSelections
                         ...array_reduce(
                             $componentsNames,
                             function ($result, $filter) use ($modelType) {
-                                if (Str::substrCount($filter, $modelType)) {
+                                if (Str::of($filter)->test("/^$modelType.+/")) {
                                     $result[] = $filter;
                                 }
                                 return $result;
@@ -135,7 +135,7 @@ class OpenApiSelections
                         ...$request['isMany'] ? array_reduce(
                             $componentsNames,
                             function ($result, $filter) use ($modelType) {
-                                if (Str::substrCount($filter, $modelType) &&
+                                if (Str::of($filter)->test("/^$modelType.+/") &&
                                     !Str::contains($filter, ['include'])
                                 ) {
                                     $result[] = $filter;
@@ -162,6 +162,7 @@ class OpenApiSelections
                     ],
                     default => []
                 };
+
                 $request['parameters'] = array_reduce($parametersNames, function ($result, $param) use ($componentsNames){
                     if (in_array($param, $componentsNames)) {
                         $result[] = ['$ref' => "#/components/parameters/$param"];

@@ -4,16 +4,19 @@ namespace Syn\LaravelSwaggerJsonApiGenerator\Services;
 
 
 use Illuminate\Database\Eloquent\Collection;
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\Field;
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\FieldArrayContract;
 use Syn\LaravelSwaggerJsonApiGenerator\Contracts\FieldContract;
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\FieldObjectContract;
 use Syn\LaravelSwaggerJsonApiGenerator\Contracts\FilterContract;
+use Syn\LaravelSwaggerJsonApiGenerator\Contracts\Relation;
 use Syn\LaravelSwaggerJsonApiGenerator\Contracts\RelationContract;
 use Syn\LaravelSwaggerJsonApiGenerator\Contracts\RelationToMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use LaravelJsonApi\Eloquent\Fields\ID;
-use LaravelJsonApi\Eloquent\Fields\Relations\Relation;
+
 use LaravelJsonApi\Eloquent\Schema;
 use Syn\LaravelSwaggerJsonApiGenerator\DTO\Resource;
 use Syn\LaravelSwaggerJsonApiGenerator\Enums\OpenApiComponentsEnum;
@@ -79,6 +82,7 @@ class OpenApiGenerators
             'nameComponent' => "$resourceType.include",
             'key' => 'include',
             'enum' => $includeParams,
+            'description' => 'Получение связанных ресурсов',
         ];
 
         $sortParams = array_reduce((array)$fields, function ($result, $field) {
@@ -94,6 +98,7 @@ class OpenApiGenerators
             'nameComponent' => "$resourceType.sort",
             'key' => 'sort',
             'enum' => $sortParams,
+            'description' => 'Сортировка'
         ];
 
         $filters = $schema->filters();
@@ -106,7 +111,9 @@ class OpenApiGenerators
                 $result[] = [
                     'nameComponent' => $nameComponent,
                     'key' => $filter->key(),
-                    'type' => $filter->getType()
+                    'type' => $filter->getType(),
+                    'description' => $filter->getDescription(),
+                    'example' => $filter->getExample(),
                 ];
                 return $result;
             }, []);
@@ -145,15 +152,29 @@ class OpenApiGenerators
             'properties' => []
         ];
         foreach ($fields as $field) {
+            $params = [];
             /** @var FieldContract $field */
-            if ($field instanceof RelationContract || $field instanceof ID) {
+            if (!$field instanceof Field) {
                 continue;
             }
-            $params['type'] = $field->getType();
-            !is_null($field->getExample()) && $params['example'] = $field->getExample();
-            !is_null($field->getDescription()) && $params['description'] = $field->getDescription();
-            $attributesTemplateData['properties'][$field->name()] = $params;
-            $field->isNotReadOnly(null) && $requestAttributesTemplateData['properties'][$field->name()] = $params;
+            if ($field instanceof FieldObjectContract) {
+                $params['type'] = $field->getType();
+                $params['properties'] = $field->getAccessors();
+            } elseif ($field instanceof FieldArrayContract) {
+                $params['type'] = 'array';
+                $params['items'] = [
+                    'type' => $field->getType(),
+                    'properties' => $field->getAccessors(),
+                ];
+            } else {
+                $params['type'] = $field->getType();
+                !is_null($field->getExample()) && $params['example'] = $field->getExample();
+                !is_null($field->getDescription()) && $params['description'] = $field->getDescription();
+            }
+            if (count($params)) {
+                $attributesTemplateData['properties'][$field->name()] = $params;
+                $field->isNotReadOnly(null) && $requestAttributesTemplateData['properties'][$field->name()] = $params;
+            }
         }
 
         $relationshipsTemplateData = [
@@ -257,7 +278,7 @@ class OpenApiGenerators
                 $action = explode('@', $route->action['controller'])[1];
                 $isSecurity = in_array('auth', $route->action['middleware']);
                 $data[$route->uri][$method] = [
-                    'security' => $isSecurity ? [['bearerAuth' => [ ]]] : null,
+                    'security' => $isSecurity ? [['bearerAuth' => []]] : null,
                     'isMany' => $isMany,
                     'resource' => $modelType,
                     'method' => $method,
@@ -318,7 +339,7 @@ class OpenApiGenerators
     {
         $template = $this->getYamlTemplate(OpenApiComponentsEnum::MAIN->value);
 
-        $resources = Arr::map($resources, fn ($value, $name) => new Resource(name: $name, value: $value));
+        $resources = Arr::map($resources, fn($value, $name) => new Resource(name: $name, value: $value));
 
         $tagsTemplates = array_reduce(
             $resources, function ($result, Resource $resource) {

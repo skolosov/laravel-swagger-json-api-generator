@@ -2,12 +2,15 @@ query:
   $nameComponent:
     in: query
     name: filter[{$key}]
+    description: $description
     schema:
       type: $type
+      example: $example
 enum:
   $nameComponent:
     in: query
     name: $key
+    description: $description
     explode: false
     schema:
       type: array
@@ -19,5 +22,7 @@ fields:
   $nameComponent:
     in: query
     name: fields[{$type}]
+    description: $description
     schema:
       type: string
+      example: $example
