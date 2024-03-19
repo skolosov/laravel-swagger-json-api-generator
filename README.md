@@ -8,7 +8,7 @@ composer require syn/laravel-swagger-json-api-generator
 опубликовать файлы:
 
 ```php
-php artisan vendor:publish --provider=Syn\LaravelSwaggerJsonApiGenerator\Providers\LaravelSwaggerJsonApiGeneratorServiceProvider
+php artisan vendor:publish --provider=Syn\LaravelSwaggerJsonApiGenerator\Providers\ServiceProvider
 ```
 ### Команда опубликует
 * файл кофигурации ***swagger-jsonapi-generator.php***
@@ -83,11 +83,7 @@ return [
     ]
 ];
 ```
-в модель ресурса необходимо добавить константу, отвечающую за тип ресурса
-### app/Models/User.php
-```php
- public const MODEL_TYPE = 'users';
-```
+
 и наконец заменить все классы полей в схемах на аналогичные из этого пакета
 ```php
 <?php

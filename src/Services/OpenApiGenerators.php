@@ -26,10 +26,12 @@ use Symfony\Component\Yaml\Yaml;
 class OpenApiGenerators
 {
     private OpenApiSelections $selections;
+    private OpenApiConfigService $service;
 
     public function __construct()
     {
         $this->selections = new OpenApiSelections();
+        $this->service = new OpenApiConfigService();
     }
 
 
@@ -40,7 +42,7 @@ class OpenApiGenerators
         $updateTemplate = $template['update'];
         $relationshipTemplate = $template['relationship'];
 
-        $typeResource = $schema::model()::MODEL_TYPE;
+        $typeResource = $schema::type();
 
         $templatesData = [
             'type' => $typeResource,
@@ -141,7 +143,7 @@ class OpenApiGenerators
         $template = $this->getYamlTemplate(OpenApiComponentsEnum::SCHEMAS->value);
         $fields = $schema->fields();
 
-        $typeResource = $schema::model()::MODEL_TYPE;
+        $typeResource = $schema::type();
 
         $attributesTemplateData = [
             'nameComponent' => "$typeResource.attributes",
@@ -192,7 +194,7 @@ class OpenApiGenerators
             }
             $data = [
                 'nameRelation' => $field->name(),
-                'type' => $field->getRelationshipModel()::MODEL_TYPE,
+                'type' => $this->service->getSchemaInstance($field->getRelationshipSchema())::type(),
             ];
             $relationship = $this->walkToArray($template['relationship'], $data);
             $requestRelationship = $this->walkToArray($template['requestRelationship'], $data);
@@ -224,7 +226,7 @@ class OpenApiGenerators
         $responseIndexTemplate = $template['responseIndex'];
         $responseRelationshipTemplate = $template['responseRelationship'];
 
-        $typeResource = $schema::model()::MODEL_TYPE;
+        $typeResource = $schema::type();
 
         $responseTemplateData = [
             'type' => $typeResource,
@@ -251,9 +253,8 @@ class OpenApiGenerators
 
     public function generatePath(Schema $schema): void
     {
-        $schemaModel = $schema::model();
-        $schemaModelType = $schemaModel::MODEL_TYPE;
-        $routes = $this->getRoutes($schemaModel);
+        $schemaModelType = $schema::type();
+        $routes = $this->getRoutes($schema);
 
         $template = $this->getYamlTemplate(OpenApiComponentsEnum::PATHS->value);
         $urlTemplate = $template['urlTemplate'];
@@ -267,7 +268,7 @@ class OpenApiGenerators
                     ? array_reduce((array)$schema->fields(), function ($result, $item) use ($route) {
                         if ($item instanceof RelationContract) {
                             if ($item->name() === $route->defaults['resource_relationship']) {
-                                $type = $item->getRelationshipModel()::MODEL_TYPE;
+                                $type = $this->service->getSchemaInstance($item->getRelationshipSchema())::type();
                                 $isMany = $item instanceof RelationToMany;
                                 $result = ['isMany' => $isMany, 'modelType' => $type];
                             }
@@ -411,7 +412,7 @@ class OpenApiGenerators
         return Yaml::parseFile(templates_path("$type.yaml"));
     }
 
-    public function getRoutes(string $modelClass): array
+    public function getRoutes(Schema $schema): array
     {
         $routes = app(Route::class);
         $routes = $routes::getRoutes();
@@ -425,7 +426,7 @@ class OpenApiGenerators
             foreach ($routesMethod as $routeObj) {
                 if (
                     isset($routeObj->defaults['resource_type']) &&
-                    $routeObj->defaults['resource_type'] === $modelClass::MODEL_TYPE
+                    $routeObj->defaults['resource_type'] === $schema::type()
                 ) {
                     $arrRoutes[strtolower($method)][] = $routeObj;
                 }

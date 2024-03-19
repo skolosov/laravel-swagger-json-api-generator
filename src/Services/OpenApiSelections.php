@@ -3,12 +3,9 @@
 namespace Syn\LaravelSwaggerJsonApiGenerator\Services;
 
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Syn\LaravelSwaggerJsonApiGenerator\Enums\OpenApiComponentsEnum;
 use Syn\LaravelSwaggerJsonApiGenerator\Models\SwaggerComponent;
-use Symfony\Component\Yaml\Yaml;
 
 class OpenApiSelections
 {
