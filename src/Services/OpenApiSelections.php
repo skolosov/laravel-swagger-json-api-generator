@@ -127,14 +127,23 @@ class OpenApiSelections
                                 return $result;
                             }, [])
                     ],
+                    'show' => [
+                        "baseParameterId",
+                        ...array_reduce(
+                            $componentsNames,
+                            function ($result, $filter) use ($modelType) {
+                                if (Str::of($filter)->test("/^$modelType.+/")) {
+                                    $result[] = $filter;
+                                }
+                                return $result;
+                            }, [])
+                    ],
                     'showRelated' => [
                         "baseParameterId",
                         ...$request['isMany'] ? array_reduce(
                             $componentsNames,
                             function ($result, $filter) use ($modelType) {
-                                if (Str::of($filter)->test("/^$modelType.+/") &&
-                                    !Str::contains($filter, ['include'])
-                                ) {
+                                if (Str::of($filter)->test("/^$modelType.+/")) {
                                     $result[] = $filter;
                                 }
                                 return $result;
@@ -146,7 +155,7 @@ class OpenApiSelections
                     'store' => [
                         "{$modelType}.include",
                     ],
-                    'update', 'show' => [
+                    'update' => [
                         "baseParameterId",
                         "{$modelType}.include",
                     ],
