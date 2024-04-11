@@ -111,11 +111,14 @@ class OpenApiGenerators
                 $nameComponent = $schema::type() . "." . $filter->key() . ".filter";
                 /** @var FilterContract $filter */
                 $result[] = [
-                    'nameComponent' => $nameComponent,
-                    'key' => $filter->key(),
-                    'type' => $filter->getType(),
-                    'description' => $filter->getDescription(),
-                    'example' => $filter->getExample(),
+                    ...[
+                        'nameComponent' => $nameComponent,
+                        'key' => $filter->key(),
+                        'type' => $filter->getType(),
+                        'description' => $filter->getDescription(),
+                        'example' => $filter->getExample(),
+                    ],
+                    ...is_null($filter->getEnum()) ? [] : ['enum' => $filter->getEnum()]
                 ];
                 return $result;
             }, []);
@@ -124,7 +127,11 @@ class OpenApiGenerators
         $tmpSort = count($sortFilterData) ? $this->walkToArray($template['enum'], $sortFilterData) : [];
 
         $tmpFilters = array_reduce($filtersNames, function ($result, $filter) use ($template) {
-            $tmp = $this->walkToArray($template['query'], $filter);
+            $tmp = $this->walkToArray(isset($filter['enum'])
+                ? $template['simple.enum']
+                : $template['query'],
+                $filter
+            );
             return array_merge($result, $tmp);
         }, []);
 
@@ -170,6 +177,7 @@ class OpenApiGenerators
                 ];
             } else {
                 $params['type'] = $field->getType();
+                !is_null($field->getEnum()) && $params['enum'] = $field->getEnum();
                 !is_null($field->getExample()) && $params['example'] = $field->getExample();
                 !is_null($field->getDescription()) && $params['description'] = $field->getDescription();
             }

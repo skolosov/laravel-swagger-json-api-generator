@@ -4,7 +4,7 @@ namespace Syn\LaravelSwaggerJsonApiGenerator\Contracts;
 
 interface FieldArrayContract
 {
-    public function typeUsing(string $type): self;
+    public function typeUsing(string $type, ?array $enum = null): self;
     public function getType(): string;
 
     public function accessor(
