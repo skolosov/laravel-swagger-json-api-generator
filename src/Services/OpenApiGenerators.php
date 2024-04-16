@@ -96,14 +96,27 @@ class OpenApiGenerators
             return $result;
         }, []);
 
+        $sortables = $schema->sortables();
+        $sortablesNames = array_reduce(
+            $sortables,
+            function ($result, $sortable) {
+                $name = $sortable->sortField();
+                if (!is_null($name)) {
+                    $result[] = $name;
+                    $result[] = "-$name";
+                }
+                return $result;
+            }, []);
+
         $sortFilterData = [
             'nameComponent' => "$resourceType.sort",
             'key' => 'sort',
-            'enum' => $sortParams,
+            'enum' => [...$sortParams, ...$sortablesNames],
             'description' => 'Сортировка'
         ];
 
         $filters = $schema->filters();
+
 
         $filtersNames = array_reduce(
             (array)$filters,
