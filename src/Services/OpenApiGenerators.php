@@ -118,33 +118,54 @@ class OpenApiGenerators
         $filters = $schema->filters();
 
 
-        $filtersNames = array_reduce(
+        $filtersData = array_reduce(
             (array)$filters,
-            function ($result, $filter) use ($schema) {
-                $nameComponent = $schema::type() . "." . $filter->key() . ".filter";
+            function ($result, $filter) use ($schema, $template) {
                 /** @var FilterContract $filter */
-                $result[] = [
-                    ...[
-                        'nameComponent' => $nameComponent,
-                        'key' => $filter->key(),
-                        'type' => $filter->getType(),
-                        'description' => $filter->getDescription(),
-                        'example' => $filter->getExample(),
-                    ],
-                    ...is_null($filter->getEnum()) ? [] : ['enum' => $filter->getEnum()]
-                ];
+                if ($filter->isComponent()) {
+                    $component = SwaggerComponent::getForName($filter->getTemplateComponentName());
+                    if (is_null($component)) {
+                        return $result;
+                    }
+                    $tmp = $component->component;
+                    if ($filter->isSplitComponent()) {
+                        foreach ($filter->getComponentName() as $key => $componentName) {
+                            $nameComponent = $schema::type() . "." . $componentName . ".filter";
+                            $args = [...$filter->getArgs()[$key], 'nameComponent' => $nameComponent];
+                            $result[] = ['tmp' => $tmp, 'args' => $args];
+                        }
+                    } else {
+                        $nameComponent = $schema::type() . "." . $filter->getComponentName() . ".filter";
+                        $args = [...$filter->getArgs(), 'nameComponent' => $nameComponent];
+                        $result[] = ['tmp' => $tmp, 'args' => $args];
+                    }
+                } else {
+                    $nameComponent = $schema::type() . "." . $filter->key() . ".filter";
+                    $args = [
+                        ...[
+                            'nameComponent' => $nameComponent,
+                            'key' => $filter->key(),
+                            'type' => $filter->getType(),
+                            'description' => $filter->getDescription(),
+                            'example' => $filter->getExample(),
+                        ],
+                        ...is_null($filter->getEnum()) ? [] : ['enum' => $filter->getEnum()]
+                    ];
+                    $tmp = isset($args['enum'])
+                        ? $template['simple.enum']
+                        : $template['query'];
+
+                    $result[] = ['tmp' => $tmp, 'args' => $args];
+                }
+
                 return $result;
             }, []);
 
         $tmpInclude = count($includeParams) ? $this->walkToArray($template['enum'], $includeFilterData) : [];
         $tmpSort = count($sortFilterData) ? $this->walkToArray($template['enum'], $sortFilterData) : [];
 
-        $tmpFilters = array_reduce($filtersNames, function ($result, $filter) use ($template) {
-            $tmp = $this->walkToArray(isset($filter['enum'])
-                ? $template['simple.enum']
-                : $template['query'],
-                $filter
-            );
+        $tmpFilters = array_reduce($filtersData, function ($result, $filter) use ($template) {
+            $tmp = $this->walkToArray($filter['tmp'], $filter['args']);
             return array_merge($result, $tmp);
         }, []);
 
