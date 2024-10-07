@@ -14,7 +14,7 @@ return [
      *
      */
     'output_format' => 'yaml',
-    'output_path' => docs_path('v1'),
+    'output_path' => 'v1',
 
     /**
      * Серверы спецификации
