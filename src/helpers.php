@@ -27,6 +27,6 @@ if (!function_exists('openapi_base_path')) {
         $output_path = preg_replace("/(\/)$/", '', config('swagger-jsonapi-generator.output_path', 'v1'));
         return is_null($path)
             ? $output_path
-            : "$output_path/" . config('swagger-jsonapi-generator.output_path', 'v1');
+            : "$output_path/" . preg_replace("/^(\/)/", '', $path);
     }
 }
