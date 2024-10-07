@@ -321,7 +321,7 @@ class OpenApiGenerators
                 $action = explode('@', $route->action['controller'])[1];
                 $isSecurity = in_array('auth', $route->action['middleware']);
                 $data[$route->uri][$method] = [
-                    'security' => $isSecurity ? [['bearerAuth' => []]] : null,
+                    'security' => $isSecurity ? ['bearerAuth: []'] : null,
                     'isMany' => $isMany,
                     'resource' => $modelType,
                     'method' => $method,
