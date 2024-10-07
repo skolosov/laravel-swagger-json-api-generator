@@ -10,7 +10,9 @@ class OpenApiController extends Controller
 {
     public function document(): string
     {
-        return File::get(base_path('docs/v1/openapi.yaml'));
+        $extension = config('swagger-jsonapi-generator.output_format', 'yaml');
+        $path = openapi_base_path("openapi.$extension");
+        return File::get(docs_path("$path"));
     }
 
     public function swagger(): View

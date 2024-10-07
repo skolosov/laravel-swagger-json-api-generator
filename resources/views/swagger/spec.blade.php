@@ -3,7 +3,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>{{config('swagger-jsonapi-generator.page-title', 'Swagger')}}</title>
+    <title>{{config('swagger-jsonapi-generator.page_title', 'Swagger')}}</title>
     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@latest/swagger-ui.css" />
     <link rel="icon" type="image/png" href="/swagger-ui/favicon-32x32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="/swagger-ui/favicon-16x16.png" sizes="16x16" />

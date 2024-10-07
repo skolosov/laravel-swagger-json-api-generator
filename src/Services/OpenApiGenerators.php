@@ -407,8 +407,13 @@ class OpenApiGenerators
 
 
         $mainTemplate = $this->walkToArray($template, $params);
-        $openApiFile = Yaml::dump($mainTemplate, 2, 2);
-        $outputPath = "v1/openapi.yaml";
+        if (config('swagger-jsonapi-generator.output_format', 'yaml') === 'json') {
+            $openApiFile = json_encode($mainTemplate);
+            $outputPath = openapi_base_path("openapi.json");
+        } else {
+            $openApiFile = Yaml::dump($mainTemplate, 2, 2);
+            $outputPath = openapi_base_path("openapi.yaml");
+        }
         Storage::disk('docs')->put($outputPath, $openApiFile);
     }
 
