@@ -4,6 +4,7 @@
 return [
 
     /** Параметры описания в шапке Swagger'a */
+    'page-title' => 'Swagger',
     'title' => 'Backend',
     'version' => '1.0.0',
     'description' => '',
