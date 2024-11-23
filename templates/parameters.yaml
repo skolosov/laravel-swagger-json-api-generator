@@ -18,6 +18,15 @@ enum:
         type: string
         enum: $enum
 
+simple.enum:
+  $nameComponent:
+    in: query
+    name: filter[{$key}]
+    description: $description
+    schema:
+      type: string
+      enum: $enum
+
 fields:
   $nameComponent:
     in: query

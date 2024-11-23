@@ -47,8 +47,7 @@ class OpenApiGenerate extends Command
             }
 
             $bar->setMessage("Загрзка $tag");
-            $server = new ($service->server)(app(AppResolver::class), 'v1');
-            $schema = new ($schema)($server);
+            $schema = $service->getSchemaInstance($schema);
 
             $bar->setMessage("Генерация схем $tag");
             $generators->generateSchemas($schema);

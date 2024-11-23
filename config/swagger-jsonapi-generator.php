@@ -4,9 +4,17 @@
 return [
 
     /** Параметры описания в шапке Swagger'a */
+    'page_title' => 'Swagger',
     'title' => 'Backend',
     'version' => '1.0.0',
     'description' => '',
+
+    /**
+     * Формат выходного файла спецификации поддерживает формат yaml и json
+     *
+     */
+    'output_format' => 'yaml',
+    'output_path' => 'v1',
 
     /**
      * Серверы спецификации

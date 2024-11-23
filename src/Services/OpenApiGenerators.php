@@ -26,10 +26,12 @@ use Symfony\Component\Yaml\Yaml;
 class OpenApiGenerators
 {
     private OpenApiSelections $selections;
+    private OpenApiConfigService $service;
 
     public function __construct()
     {
         $this->selections = new OpenApiSelections();
+        $this->service = new OpenApiConfigService();
     }
 
 
@@ -40,7 +42,7 @@ class OpenApiGenerators
         $updateTemplate = $template['update'];
         $relationshipTemplate = $template['relationship'];
 
-        $typeResource = $schema::model()::MODEL_TYPE;
+        $typeResource = $schema::type();
 
         $templatesData = [
             'type' => $typeResource,
@@ -94,35 +96,76 @@ class OpenApiGenerators
             return $result;
         }, []);
 
+        $sortables = $schema->sortables();
+        $sortablesNames = array_reduce(
+            $sortables,
+            function ($result, $sortable) {
+                $name = $sortable->sortField();
+                if (!is_null($name)) {
+                    $result[] = $name;
+                    $result[] = "-$name";
+                }
+                return $result;
+            }, []);
+
         $sortFilterData = [
             'nameComponent' => "$resourceType.sort",
             'key' => 'sort',
-            'enum' => $sortParams,
+            'enum' => [...$sortParams, ...$sortablesNames],
             'description' => 'Сортировка'
         ];
 
         $filters = $schema->filters();
 
-        $filtersNames = array_reduce(
+
+        $filtersData = array_reduce(
             (array)$filters,
-            function ($result, $filter) use ($schema) {
-                $nameComponent = $schema::type() . "." . $filter->key() . ".filter";
+            function ($result, $filter) use ($schema, $template) {
                 /** @var FilterContract $filter */
-                $result[] = [
-                    'nameComponent' => $nameComponent,
-                    'key' => $filter->key(),
-                    'type' => $filter->getType(),
-                    'description' => $filter->getDescription(),
-                    'example' => $filter->getExample(),
-                ];
+                if ($filter->isComponent()) {
+                    $component = SwaggerComponent::getForName($filter->getTemplateComponentName());
+                    if (is_null($component)) {
+                        return $result;
+                    }
+                    $tmp = $component->component;
+                    if ($filter->isSplitComponent()) {
+                        foreach ($filter->getComponentName() as $key => $componentName) {
+                            $nameComponent = $schema::type() . "." . $componentName . ".filter";
+                            $args = [...$filter->getArgs()[$key], 'nameComponent' => $nameComponent];
+                            $result[] = ['tmp' => $tmp, 'args' => $args];
+                        }
+                    } else {
+                        $nameComponent = $schema::type() . "." . $filter->getComponentName() . ".filter";
+                        $args = [...$filter->getArgs(), 'nameComponent' => $nameComponent];
+                        $result[] = ['tmp' => $tmp, 'args' => $args];
+                    }
+                } else {
+                    $nameComponent = $schema::type() . "." . $filter->key() . ".filter";
+                    $args = [
+                        ...[
+                            'nameComponent' => $nameComponent,
+                            'key' => $filter->key(),
+                            'type' => $filter->getType(),
+                            'description' => $filter->getDescription(),
+                            'example' => $filter->getExample(),
+                        ],
+                        ...is_null($filter->getEnum()) ? [] : ['enum' => $filter->getEnum()]
+                    ];
+                    $tmp = isset($args['enum'])
+                        ? $template['simple.enum']
+                        : $template['query'];
+
+                    $result[] = ['tmp' => $tmp, 'args' => $args];
+                }
+
                 return $result;
             }, []);
 
         $tmpInclude = count($includeParams) ? $this->walkToArray($template['enum'], $includeFilterData) : [];
         $tmpSort = count($sortFilterData) ? $this->walkToArray($template['enum'], $sortFilterData) : [];
 
-        $tmpFilters = array_reduce($filtersNames, function ($result, $filter) use ($template) {
-            $tmp = $this->walkToArray($template['query'], $filter);
+        $tmpFilters = array_reduce($filtersData, function ($result, $filter) use ($template) {
+            $tmp = $this->walkToArray($filter['tmp'], $filter['args']);
             return array_merge($result, $tmp);
         }, []);
 
@@ -141,7 +184,7 @@ class OpenApiGenerators
         $template = $this->getYamlTemplate(OpenApiComponentsEnum::SCHEMAS->value);
         $fields = $schema->fields();
 
-        $typeResource = $schema::model()::MODEL_TYPE;
+        $typeResource = $schema::type();
 
         $attributesTemplateData = [
             'nameComponent' => "$typeResource.attributes",
@@ -168,6 +211,7 @@ class OpenApiGenerators
                 ];
             } else {
                 $params['type'] = $field->getType();
+                !is_null($field->getEnum()) && $params['enum'] = $field->getEnum();
                 !is_null($field->getExample()) && $params['example'] = $field->getExample();
                 !is_null($field->getDescription()) && $params['description'] = $field->getDescription();
             }
@@ -192,7 +236,7 @@ class OpenApiGenerators
             }
             $data = [
                 'nameRelation' => $field->name(),
-                'type' => $field->getRelationshipModel()::MODEL_TYPE,
+                'type' => $this->service->getSchemaInstance($field->getRelationshipSchema())::type(),
             ];
             $relationship = $this->walkToArray($template['relationship'], $data);
             $requestRelationship = $this->walkToArray($template['requestRelationship'], $data);
@@ -224,7 +268,7 @@ class OpenApiGenerators
         $responseIndexTemplate = $template['responseIndex'];
         $responseRelationshipTemplate = $template['responseRelationship'];
 
-        $typeResource = $schema::model()::MODEL_TYPE;
+        $typeResource = $schema::type();
 
         $responseTemplateData = [
             'type' => $typeResource,
@@ -251,9 +295,8 @@ class OpenApiGenerators
 
     public function generatePath(Schema $schema): void
     {
-        $schemaModel = $schema::model();
-        $schemaModelType = $schemaModel::MODEL_TYPE;
-        $routes = $this->getRoutes($schemaModel);
+        $schemaModelType = $schema::type();
+        $routes = $this->getRoutes($schema);
 
         $template = $this->getYamlTemplate(OpenApiComponentsEnum::PATHS->value);
         $urlTemplate = $template['urlTemplate'];
@@ -267,7 +310,7 @@ class OpenApiGenerators
                     ? array_reduce((array)$schema->fields(), function ($result, $item) use ($route) {
                         if ($item instanceof RelationContract) {
                             if ($item->name() === $route->defaults['resource_relationship']) {
-                                $type = $item->getRelationshipModel()::MODEL_TYPE;
+                                $type = $this->service->getSchemaInstance($item->getRelationshipSchema())::type();
                                 $isMany = $item instanceof RelationToMany;
                                 $result = ['isMany' => $isMany, 'modelType' => $type];
                             }
@@ -278,7 +321,7 @@ class OpenApiGenerators
                 $action = explode('@', $route->action['controller'])[1];
                 $isSecurity = in_array('auth', $route->action['middleware']);
                 $data[$route->uri][$method] = [
-                    'security' => $isSecurity ? [['bearerAuth' => []]] : null,
+                    'security' => $isSecurity ? [['bearerAuth' => array()]] : null,
                     'isMany' => $isMany,
                     'resource' => $modelType,
                     'method' => $method,
@@ -364,8 +407,13 @@ class OpenApiGenerators
 
 
         $mainTemplate = $this->walkToArray($template, $params);
-        $openApiFile = Yaml::dump($mainTemplate, 2, 2);
-        $outputPath = "v1/openapi.yaml";
+        if (config('swagger-jsonapi-generator.output_format', 'yaml') === 'json') {
+            $openApiFile = json_encode($mainTemplate);
+            $outputPath = openapi_base_path("openapi.json");
+        } else {
+            $openApiFile = Yaml::dump($mainTemplate, 2, 2);
+            $outputPath = openapi_base_path("openapi.yaml");
+        }
         Storage::disk('docs')->put($outputPath, $openApiFile);
     }
 
@@ -411,7 +459,7 @@ class OpenApiGenerators
         return Yaml::parseFile(templates_path("$type.yaml"));
     }
 
-    public function getRoutes(string $modelClass): array
+    public function getRoutes(Schema $schema): array
     {
         $routes = app(Route::class);
         $routes = $routes::getRoutes();
@@ -425,7 +473,7 @@ class OpenApiGenerators
             foreach ($routesMethod as $routeObj) {
                 if (
                     isset($routeObj->defaults['resource_type']) &&
-                    $routeObj->defaults['resource_type'] === $modelClass::MODEL_TYPE
+                    $routeObj->defaults['resource_type'] === $schema::type()
                 ) {
                     $arrRoutes[strtolower($method)][] = $routeObj;
                 }

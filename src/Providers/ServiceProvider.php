@@ -2,10 +2,10 @@
 
 namespace Syn\LaravelSwaggerJsonApiGenerator\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\ServiceProvider as LaravelServiceProvider;
 use Syn\LaravelSwaggerJsonApiGenerator\Console\OpenApiGenerate;
 
-class LaravelSwaggerJsonApiGeneratorServiceProvider extends ServiceProvider
+class ServiceProvider extends LaravelServiceProvider
 {
     /**
      * Register any application services.

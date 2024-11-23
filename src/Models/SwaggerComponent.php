@@ -27,4 +27,9 @@ class SwaggerComponent extends Model
     protected $casts = [
         self::FIELD_COMPONENT => 'json',
     ];
+    
+    public static function getForName(string $name): null|self|Model
+    {
+        return self::query()->where(self::FIELD_NAME, 'like', $name)->first();
+    }
 }
